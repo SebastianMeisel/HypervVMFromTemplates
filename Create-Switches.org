@@ -8,24 +8,27 @@
 Die Skripte [[file:New-VMFromISO.org][New-VMFromISO.ps1]] und [[file:New-VMFromTemplate.org][New-VMFromTemplate.ps1]] gehen davon aus,
 dass zwei Switche existieren:
 
-- "Internet": Externer Switch
-- "VM": Interner Switch
+- "WAN": Externer Switch (Bridge)
+- "LAN": Interner Switch (Nat)
+- "PRIV": Privater Switch 
 
 Dieses Skript ist inspiriert von [[https://techsnips.io/snips/how-to-manage-hyper-v-virtual-switches-with-powershell/][https://techsnips.io/]].
   
 Diese Angaben speichern wir zunächst in einem dictionary
 
 #+BEGIN_SRC PS
-  $Switches = @[ordered]{ "Internet" = "External" ; "VM" = "Internal"}
+  $Switches = [ordered]@{ 'WAN' = 'External' ; 'LAN' = 'Internal' ; 'PRIV' = 'Private'; }
 #+END_SRC
 
 * Funktion New-LabSwitch
-Die folgende Funktion erstellt einen Switch, wobei Name und
-Typ als Parameter übergeben werden. Als Default für den Typ
-wird /External/ definiert.
+Die folgende Funktion erstellt einen Switch.
+** Parameter
+
+Name und Typ werden als Parameter übergeben. Als Default für den Typ
+wird /External/ definiert:
 
 #+BEGIN_SRC PS
-** function New-LabSwitch
+function New-LabSwitch
 {
 	param(
 		[Parameter(Mandatory)]
@@ -36,7 +39,9 @@ wird /External/ definiert.
 	)
 #+END_SRC
 
-Dann wird geprüft, ob der Switch noch nicht existiert.
+** Switch exitiert noch nicht?
+Dann wird geprüft, ob der Switch noch nicht existiert, wenn
+nicht, wird ein neuer Switch erstellt: 
 
 #+BEGIN_SRC PS
 	if( -not (Get-VMSwitch `
@@ -44,19 +49,28 @@ Dann wird geprüft, ob der Switch noch nicht existiert.
 			-SwitchType $Type `
 			-ErrorAction SilentlyContinue))
 	{
+	Write-Verbose `
+		-Message "Creating switch [$Name]..."
 #+END_SRC
 
+*** Externer Switch
+Soll ein Externer Switch erstellt werden, wird der Name des
+Netzwerkdevices genutzt und `-AllowManagementOS` auf `true`
+gesetzt:
+
 #+BEGIN_SRC PS
-		Write-Verbose `
-			-Message "Creating switch [$Name]..."
-		if ( $Type -eq 'External' )
-		{
-			$null = New-VMSwitch `
-				-name $Name  `
-				-NetAdapterName Ethernet `
-				-AllowManagementOS $true
+	if ( $Type -eq 'External' )
+	{
+		$null = New-VMSwitch `
+		      -name $Name  `
+		      -NetAdapterName Ethernet `
+		      -AllowManagementOS $true
 		}
 #+END_SRC
+
+*** Interner oder Privater Switch
+
+Ansonsten setzen wir neben dem Namen nur den Typ des Switches:
 
 #+BEGIN_SRC PS
 		else
@@ -71,6 +85,8 @@ Dann wird geprüft, ob der Switch noch nicht existiert.
 	}
 #+END_SRC
 
+** Switch existiert
+Falls der Switch existiert, melden wir das und tun sonst nichts.
 #+BEGIN_SRC PS
 	else
 	{
@@ -80,9 +96,19 @@ Dann wird geprüft, ob der Switch noch nicht existiert.
 }
 #+END_SRC
 
-New-LabSwitch -Name $SwitchName -Type $SwitchType -Verbose
+* Definierte Switche erstellen
 
+Nun erstellen wir die [[* Virtuelle Switche für HyperV][anfangs]] im Dictionary definierten Switche:
+
+#+BEGIN_SRC PS
+ForEach ($pair in $Switches.GetEnumerator()) {
+   New-LabSwitch -Name "$($pair.key)" -Type "$($pair.value)" -Verbose
+}
 # Abschluss bestätigen
 Write-Host -NoNewLine "Press any key to continue..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+#+END_SRC
+
+
+
 

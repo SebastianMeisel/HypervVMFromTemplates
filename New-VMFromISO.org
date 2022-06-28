@@ -77,7 +77,7 @@ Wir setzen auch einige Ressourcen, die du anpassen kannst.
 #+BEGIN_SRC PS
 $HV_path = "C:\\Users\User\HyperV"
 $image = "$($HV_path)\ISO\$($ISO).iso"
-$vmswitch = "Internet" 
+$vmswitch = "WAN" 
 $disk="$($HV_path)/VHD/$($Name).vhdx"
 $disk_size = 10GB 
 $cpu = 1 
