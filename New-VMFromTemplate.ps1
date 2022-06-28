@@ -40,8 +40,8 @@ Large
    Name of one of the playbooks of the templates-subdirectory without the
   `yaml`extensions.
 .PARAMETER SecondSwitch
-  By default the VM is connected to the external virtual switch named "Internet".
-  With this switch you can add a second, internal switch named "VM".
+  By default the VM is connected to the external virtual switch named "WAN".
+  With this switch you can add a second, internal switch named "LAN".
   Both switches must be configured beforehand.
 .PARAMETER Passthru
   With this switch set, the process is send to the background. You can do diffent
@@ -97,7 +97,7 @@ Write-Verbose "Creating new $VMConfiguration virtual machine"
 $Pre="C:\\Users\User\HyperV"
 
 # allgemeine VM Parameter
-$Switch = "Internet"
+$Switch = "WAN"
 $Path = "$($Pre)\VM"
 $TemplatePath = "$($Pre)\Templates\$($VMTemplate)_tmp.vhdx"
 $VHDPath = "$($Pre)\VHD\$($name).vhdx"
@@ -197,7 +197,7 @@ if ($VM) {
 
 Try{
   if ($SecondSwitch) {
-    Add-VMNetworkAdapter -SwitchName VM -VMName $Name -Name "Second"
+    Add-VMNetworkAdapter -SwitchName "LAN" -VMName $Name -Name "Second"
   }
 }
 Catch{

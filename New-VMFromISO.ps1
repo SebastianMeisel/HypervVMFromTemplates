@@ -22,7 +22,7 @@ This script requires the Hyper-V-module 2.0 for PowerShell 7 or newer.
    You may specify the machine of the Hyper-V-server. It defaults to the local machine.
 .EXAMPLE
    PS C:\Scripts\> .\New-VMFromISO Ubuntu1 -ISO Ubuntu
-.NOTE
+.NOTES
    Author: Sebastian Meisel
    Contact: sebastian.meisel@gmail.com
    Licence: GPLv3 (https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -54,7 +54,7 @@ Param(
 
 $HV_path = "C:\\Users\User\HyperV"
 $image = "$($HV_path)\ISO\$($ISO).iso"
-$vmswitch = "Internet" 
+$vmswitch = "WAN" 
 $disk="$($HV_path)/VHD/$($Name).vhdx"
 $disk_size = 10GB 
 $cpu = 1 
