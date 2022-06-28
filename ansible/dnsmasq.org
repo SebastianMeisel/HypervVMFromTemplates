@@ -1,0 +1,134 @@
+# -*- org-src-preserve-indentation: t -*-
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-21 Di>
+#+BABEL: :cache yes
+#+PROPERTY: header-args :tangle dnsmasq.yml
+
+* Dnsmasq-Rolle installieren
+
+Ansible bietet die Möglichkeit vorgefertigte "Rollen" für
+bestimmte Aufgaben zu nutzen.
+
+In diesem Fall nutzen wir eine Ansible-Rolle von
+[[https://github.com/bertvv/ansible-dnsmasq][https://github.com/bertvv]].
+
+Dafür bietet Ansible das Werkzeug `ansible-galaxy`.
+
+#+BEGIN_SRC PS :tangle no
+wsl ansible-galaxy install bertvv.dnsmasq
+#+END_SRC
+
+
+* Dnsmasq installieren
+** Server updaten
+Bevor neue Software (in diesem Fall Nginx) sollte das
+System aktualisiert werden.
+
+*** Update-Server
+Zunächst müssen wir das System updaten. Dabei ist das
+Problem, dass wir nicht wissen, mit welchem System wir es zu
+tun haben, wenn wir schiedene Templates mit
+unterschiedlichen Distributionen nutzen. Hierbei können uns
+Variablen helfen. Die Idee habe ich von [[https://radeksprta.eu/posts/make-ansible-playbook-distribution-agnostic/][https://radeksprta.eu]].
+Hierfür definieren wir verschiedene Tasks je nach OS unter
+([[Software_Update.org][Software_Update.org]]) und nutzen sie dann in unserem Playbook:
+
+#+BEGIN_SRC yml 
+- hosts: templates
+  become: yes
+  gather_facts: true
+  tasks:
+    - name: Update Systet 
+      include_tasks: "update-{{ ansible_os_family }}.yml"
+#+END_SRC
+
+* Netplan Konfigurieren
+
+Nun müssen wir eine statische Adresse für die
+eth1-Netzwerkkarte mittels [[file:netplan.org][Netplan]] konfigurieren. 
+
+#+BEGIN_SRC yml 
+- name: Set Static Ip for eth1
+  hosts: templates
+  gather_facts: no
+  become: yes
+  vars:
+    eth1_ip: 192.168.28.1/24
+    eth1_nameservers: [192.168.28.1]
+    eth1_domains: [lo.cal]
+  tasks:
+    - name: Update System 
+      include_tasks: "netplan_static.yml"
+#+END_SRC
+
+* Systemd-resolved abschalten
+
+Bevor wir Dnsmasq nutzen können muss der bisherige
+DNS-Resolver deaktiviert werden.
+
+#+BEGIN_SRC yml :tangle no
+    - name: Disable systemd-resolved
+      service:
+        name: systemd-resolved
+        enabled: no
+#+END_SRC
+
+
+** Dnsmasq installieren und konfigurieren
+
+Die Installation und Konfiguration von Dnsmasq übernimmt nun
+die Serverrolle, wobei wir die Konfiguration über Ansible
+Variablen kontrollieren.
+
+*** DNS-Konfiguration
+
+Zunächst legen wir die Upstreamserver fest, die genutzt
+werden sollen:
+
+#+BEGIN_SRC yml
+- name: Dnsmasq server-role
+  hosts: templates
+  become: yes
+  vars:
+    dnsmasq_upstream_servers:
+      - 8.8.4.4
+      - 8.8.8.8
+#+END_SRC
+
+Dann legen wir die Domain fest:
+#+BEGIN_SRC yml
+    dnsmasq_domain: loc.al
+#+END_SRC
+
+*** Dhcp-Konfiguration
+
+Als nächstes legen wir den Adressbereich für das Netzwerk fest:
+
+#+BEGIN_SRC yml
+    dnsmasq_dhcp_ranges:
+      - start_addr: '192.168.28.10'
+        end_addr: '192.168.28.50'
+        lease_time: '12h'
+#+END_SRC
+
+*** Netzwerkkarte
+
+Wir müssen nun noch sicherstellen, dass Dnsmasq (nur) an der
+sekundären Netzwerkkarte lauscht, damit wir nicht mit dem
+Router des externen Netzwerkes konkurieren.
+
+#+BEGIN_SRC yml
+    dnsmasq_interface: eth1
+    dnsmasq_bind_interfaces: 1
+#+END_SRC
+
+
+
+* Rolle auspielen
+Schließlich ist es an der Zeit, die Rolle auszuspielen:
+
+#+BEGIN_SRC yml
+  roles:
+    - bertvv.dnsmasq
+#+END_SRC
+

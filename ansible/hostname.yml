@@ -1,0 +1,7 @@
+- name: configure template
+  hosts: templates
+  become: yes
+  tasks:
+    - name: set hostname       
+      ansible.builtin.hostname:
+        name: "{{ new_hostname }}"

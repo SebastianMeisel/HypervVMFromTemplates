@@ -1,0 +1,57 @@
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-14 Tue>
+#+BABEL: :cache yes
+
+* Updates für verschieden Linux-Distributionen
+
+Verschiedene Distributions-Familien benutzten unterschiedliche Packetmanager.
+Daher müssen sie bei Updates und der Packetverwaltung einzeln angesprochen werden.
+Um das zu erreichen, schreiben wir für jede Familie einen
+eigenen Update-Task, der im Dateinamen die
+Distributionsfamilie enthält, die wir dann im Playbook mit
+`{{ ansible_os_family }}` einfügen können.
+
+** Debian
+
+Debian-basierte System nutzen apt als Updatemanager:
+
+#+BEGIN_SRC yml :tangle update-Debian.yml
+---
+- name: Update packages
+  become: yes
+  apt:
+    update_cache: yes
+    upgrade: dist
+#+END_SRC
+
+** Suse
+
+Die Suse-Distributionen SLES und OpenSuse nutzen zypper:
+
+#+BEGIN_SRC yml :tangle update-SLES.yml
+---
+- name: Update packages
+  zypper:
+    name: '*'
+    state: latest
+    update_cache: yes
+#+END_SRC
+
+** Redhat
+
+Die Distributionen aus dem Hause Redhat, RHEL, CentOS und
+Fedora nutzen dnf:
+
+#+BEGIN_SRC yml :tangle update-RedHat.yml
+---
+- name: Update packages
+  dnf:
+    name: '*'
+    state: latest
+    update_cache: yes
+#+END_SRC
+
+
+
+
+

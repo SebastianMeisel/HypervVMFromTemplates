@@ -1,0 +1,54 @@
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-17 Fr>
+#+BABEL: :cache yes
+#+PROPERTY: header-args :tangle hosts
+
+* Vault für Geheimnisse anlegen
+Ansible loggt sich auf den Hosts mittels ssh ein. Dies geschieht passwortlos.
+Allerdings wird ein sudo-Passwort benötigt um priviligierte Aktionen durchzuführen.
+Dies wollen wir nicht offen herumliegen lassen, weshalb wir es "einschließen".
+Dazu dient der Ansible-Vault.
+
+!! Alle Befehle müssen unter WSL2 in der Bash ausgeführt werden !!
+
+Zunächst müssen wir ein Passwort für die Verschlüsselung festlegen und speichern:
+
+#+BEGIN_SRC bash :tangle no
+  sudo echo "Geheim" >> /etc/ansible/password.txt
+  sudo chmod 666 /etc/ansible/password.txt
+#+END_SRC
+
+Dann verschlüsseln wir unser Sudo-Passwort und weisen es der
+Variable `ansible_become_password` zu:
+
+#+BEGIN_SRC bash :tangle no
+ansible-vault encrypt_string 'Geheim' --name 'ansible_become_password' --vault-id=/etc/ansible/password.txt
+#+END_SRC
+
+Die Ausgabe kopieren wir (siehe unten) in die Hostdatei.
+
+* Hosts-Datei
+Die Hostdatei dienst Ansible dazu die notwendigen Informationen zu den Hosts
+vorzuhalten, die es verwalten soll. In unserem Fall enthält die Datei nur einen
+Host, nämlich "template". Diesen haben wir in `~/.ssh/config` mit dem FQDN oder der
+IP, sowie dem zugehörigen Schlüssel definiert.
+
+Wir definieren zusätzlich einen Nutzer (anpassen), der Sudo-Rechte hat und geben an,
+dass er das Passwort aus dem Vault nutzen soll:
+
+#+BEGIN_SRC yml
+---
+templates:
+  hosts:
+    template :
+      ansible_host: template
+      ansible_user: sebastian
+      ansible_become_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36393736643861643532636337353136663665616630333966343032383336343038363361363634
+          3664616434333765366530613661336530346262343765340a303033316334336264303037336663
+          61663235613638376134373537346139613838306632373865336163333933653535303464363432
+          6531343862366264390a386566313639643634363263633134356562633437626666623334636261
+          3663
+#+END_SRC
+

@@ -1,0 +1,43 @@
+# -*- org-src-preserve-indentation: t -*-
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-24 Fr>
+#+BABEL: :cache yes
+#+PROPERTY: header-args :tangle netplan_static.yml
+
+* Netplan konfigurieren
+
+Dieses Playbook funktioniert auf Systemen, die mit Netplan
+arbeiten, wie den Ubuntu-Server-Varianten (getestet auf
+Ubuntu-Server 22.04).
+
+
+Zunächst müssen wir die IP als Variable eintragen, dies
+sollte von dem Playbook geschehen, der diesen Task importiert:
+
+#+BEGIN_SRC yml :tangle no
+- name: Set Static Ip for eth1
+  hosts: templates
+  gather_facts: no
+  become: yes
+  vars:
+    eth1_ip: 192.168.28.1/24
+    eth1_nameservers: [192.168.28.1]
+    eth1_domains: [lo.cal]
+#+END_SRC
+
+Dann legen wir eine neue Datei unter `/etc/netplan` an:
+
+#+BEGIN_SRC yml
+---
+- name: Creating netplan config for eth1
+  copy:
+    dest: "/etc/netplan/90-eth1.yaml"
+    content: |
+      network:
+        ethernets:
+          eth1:
+            addresses:
+              - {{ eth1_ip }}
+            nameservers:
+              search: {{ eth1_domains }}
+#+END_SRC

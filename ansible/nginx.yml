@@ -1,0 +1,11 @@
+  tasks:
+  - name: Creating netplan config for eth1
+    copy:
+      dest: "/etc/netplan/90-eth1.yaml"
+      content: |
+        ethernets:
+            eth1:
+                addresses:
+                    - {{ eth1_ip }}
+                nameservers:
+                    search: {{ eth1_domains }}

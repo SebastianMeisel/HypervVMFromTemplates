@@ -1,0 +1,27 @@
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-14 Tue>
+#+BABEL: :cache yes
+#+PROPERTY: header-args :tangle hostname.yml 
+
+* Hostnamen anpassen
+Dieses Playbook dient dazu den Hostnamen der neuen VM am
+Ende der Installation anzupassen, sodass er nicht mehr
+'template' lautet sondern, dem Namen der VM entspricht.
+
+Da im Inventory (hosts) nur ein Host definiert ist, kann das
+Playbook für alle Host laufen. Mit `become: yes` werden für
+den Task sudo-Rechte gewährt, die auch benötigt werden.
+
+Der Task benutzt das Builtin-Modul hostname und setzt den
+Namen anhand der Variable "new_hostname" die vom Skript an
+den Aufruf des Playbooks übergeben wird.
+
+#+BEGIN_SRC yml
+- name: configure template
+  hosts: templates
+  become: yes
+  tasks:
+    - name: set hostname       
+      ansible.builtin.hostname:
+        name: "{{ new_hostname }}"
+#+END_SRC

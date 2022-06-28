@@ -1,0 +1,6 @@
+---
+- name: Update packages
+  zypper:
+    name: '*'
+    state: latest
+    update_cache: yes

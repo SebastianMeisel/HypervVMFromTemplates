@@ -1,0 +1,6 @@
+/00-installer-config.yaml
+ISO/**
+VM/**
+Templates/**
+VHD/**
+**~

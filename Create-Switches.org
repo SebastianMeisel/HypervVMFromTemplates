@@ -1,0 +1,88 @@
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-28 Di>
+#+BABEL: :cache yes
+#+PROPERTY: header-args :tangle Create-Switches.ps1
+
+* Virtuelle Switche für HyperV
+
+Die Skripte [[file:New-VMFromISO.org][New-VMFromISO.ps1]] und [[file:New-VMFromTemplate.org][New-VMFromTemplate.ps1]] gehen davon aus,
+dass zwei Switche existieren:
+
+- "Internet": Externer Switch
+- "VM": Interner Switch
+
+Dieses Skript ist inspiriert von [[https://techsnips.io/snips/how-to-manage-hyper-v-virtual-switches-with-powershell/][https://techsnips.io/]].
+  
+Diese Angaben speichern wir zunächst in einem dictionary
+
+#+BEGIN_SRC PS
+  $Switches = @[ordered]{ "Internet" = "External" ; "VM" = "Internal"}
+#+END_SRC
+
+* Funktion New-LabSwitch
+Die folgende Funktion erstellt einen Switch, wobei Name und
+Typ als Parameter übergeben werden. Als Default für den Typ
+wird /External/ definiert.
+
+#+BEGIN_SRC PS
+** function New-LabSwitch
+{
+	param(
+		[Parameter(Mandatory)]
+		[string]$Name,
+
+		[Parameter()]
+		[string]$Type = 'External'
+	)
+#+END_SRC
+
+Dann wird geprüft, ob der Switch noch nicht existiert.
+
+#+BEGIN_SRC PS
+	if( -not (Get-VMSwitch `
+			-Name $Name `
+			-SwitchType $Type `
+			-ErrorAction SilentlyContinue))
+	{
+#+END_SRC
+
+#+BEGIN_SRC PS
+		Write-Verbose `
+			-Message "Creating switch [$Name]..."
+		if ( $Type -eq 'External' )
+		{
+			$null = New-VMSwitch `
+				-name $Name  `
+				-NetAdapterName Ethernet `
+				-AllowManagementOS $true
+		}
+#+END_SRC
+
+#+BEGIN_SRC PS
+		else
+		{
+			$null = New-VMSwitch `
+				-Name $Name `
+				-SwitchType $Type
+		}
+
+		Write-Verbose `
+			-Message "Switch [$Name] created."
+	}
+#+END_SRC
+
+#+BEGIN_SRC PS
+	else
+	{
+		Write-Verbose `
+			-Message "Switch [$Name] has already been created!"
+	}
+}
+#+END_SRC
+
+New-LabSwitch -Name $SwitchName -Type $SwitchType -Verbose
+
+# Abschluss bestätigen
+Write-Host -NoNewLine "Press any key to continue..."
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+

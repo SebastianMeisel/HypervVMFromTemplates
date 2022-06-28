@@ -1,0 +1,39 @@
+- hosts: templates
+  become: yes
+  gather_facts: true
+  tasks:
+    - name: Update Systet 
+      include_tasks: "update-{{ ansible_os_family }}.yml"
+
+- name: Set Static Ip for eth1
+  hosts: templates
+  gather_facts: no
+  become: yes
+  vars:
+    eth1_ip: 192.168.28.1/24
+    eth1_nameservers: [192.168.28.1]
+    eth1_domains: [lo.cal]
+  tasks:
+    - name: Update System 
+      include_tasks: "netplan_static.yml"
+
+- name: Dnsmasq server-role
+  hosts: templates
+  become: yes
+  vars:
+    dnsmasq_upstream_servers:
+      - 8.8.4.4
+      - 8.8.8.8
+
+    dnsmasq_domain: loc.al
+
+    dnsmasq_dhcp_ranges:
+      - start_addr: '192.168.28.10'
+        end_addr: '192.168.28.50'
+        lease_time: '12h'
+
+    dnsmasq_interface: eth1
+    dnsmasq_bind_interfaces: 1
+
+  roles:
+    - bertvv.dnsmasq
