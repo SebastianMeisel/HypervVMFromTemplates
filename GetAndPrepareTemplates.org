@@ -1,0 +1,90 @@
+#+AUTHOR: Sebastian Meisel
+#+DATE: <2022-06-29 Mi>
+
+* VM aus ISO Erstellen
+
+Zunächst nutzen wir [[file+emacs:New-VMFromIso.org][New-VMFromIso.ps1]] um ein ISO-Image des
+gewünschten OS herunterzuladen und zu starten. Für das
+spätere Beispiel brauchen wir Templates für:
+
+- Ubuntu-Server 22.04
+- ClearOs 7
+  
+** Ubuntu-Server 22.04
+
+#+BEGIN_SRC PS
+  .\New-VMFromISO.ps1 Ubuntu_tmp `
+   -ISO Ubuntu `
+   -Url https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso `
+   -ChkSum 28ccdb56450e643bad03bb7bcf7507ce3d8d90e8bf09e38f6bd9ac298a98eaad
+#+END_SRC
+
+Beachte folgende Einstellungen bei der Installation:
+
+- *keine* Verschlüsselung aktivieren, da dies eine
+  Passworteingabe beim Start nötig macht.
+- Open-SSH aktivieren
+- Hostname: templates
+
+Nach dem Neustart installiere den Hyper-V-Integrationsservice mit dem Skript,
+das du unter [[https://github.com/Hinara/linux-vm-tools/blob/ubuntu20-04/ubuntu/22.04/install.sh][https://github.com/Hinara/]] findest. Lies es dir durch bevor du es
+mit folgendem Befehl in der VM ausführst:
+
+#+BEGIN_SRC bash
+  curl https://raw.githubusercontent.com/Hinara/linux-vm-tools/ubuntu20-04/ubuntu/22.04/install.sh | \
+  sudo bash -
+#+END_SRC
+
+Es reicht aus, das Skript einmal auszuführen und neuzustarten. Wenn du es nach
+dem Neustart nocheinmal ausführst werden Integrationsservices für den X-Server
+installiert. Das solltest du aber nur tun, wenn du einen Desktop nutzen
+möchtest, da als Abhängigkeit alle möglichen X11-Packete installiert werden, die
+du auf einem Server vermutlich nicht möchstest.
+
+Nun kannst du den Server herunterfahren und die virtuelle Festplatte nach ins
+Templates-Unterverzeichnis kopieren:
+
+#+BEGIN_SRC PS
+   Move-Item .\VHD\Ubuntu_tmp.vhdx .\Templates\
+#+END_SRC
+
+Dann kann die Virtuelle Maschine gelöscht werden.
+
+** ClearOs 7
+
+#+BEGIN_SRC PS
+  .\New-VMFromISO.ps1 ClearOS_tmp -ISO ClearOS `
+   -Url https://mirror1-frankfurt.clearos.com/clearos/7/iso/x86_64/ClearOS-DVD-x86_64.iso
+#+END_SRC
+
+
+* SSH-Schlüssel generieren und auf dem Server authorisieren
+
+Nun müssen wir einen SSH-Schlüssel (siehe: [[https://man.archlinux.org/man/ssh-keygen.1.de][man ssh-keygen]]) erstellen, um uns
+ohne Passwort auf den VMs anzumelden:  
+
+#+BEGIN_SRC PS
+wsl ssh-keygen -t ed25519 -b 4096 -f ~/.ssh/HyperV-VM
+#+END_SRC
+
+Dann laden wir ihn (siehe: [[https://man.archlinux.org/man/ssh-copy-id.1.de][man ssh-copy-id]])auf die Virtuelle Maschine
+(Nutzername und IP anpassen): 
+
+#+BEGIN_SRC PS
+wsl ssh-copy-id -i ~/.ssh/HyperV-VM nutzer@192.168.13.56
+#+END_SRC
+
+* SSH-config Eintrag
+
+Nun erstellen wir einen Eintrag in die [[https://man.archlinux.org/man/ssh_config.5.de][~/.ssh/config]]:
+
+#+BEGIN_SRC PS
+ wsl eval 'cat << \. >> ~/.ssh/config
+>> Host template VM
+>>      HostName           template
+>>      User               Nutzer
+>>      IdentityFile       ~/.ssh/HyperV-VM
+>> .
+>> '  
+#+END_SRC
+
