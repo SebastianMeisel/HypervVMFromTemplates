@@ -80,7 +80,8 @@ if ( $Url  )
 if ( $ChkSum  )
 {
   Try{
-	(Get-FileHash $image -Algorithm SHA256).Hash -eq "$($ChkSum).ToUpper()" 
+	return $(Get-FileHash $image -Algorithm SHA256).Hash.ToUpper() `
+                             -eq "$($ChkSum).ToUpper()" 
   }
   Catch{
     Write-Warning "Failed to verify $image from $Url."
@@ -117,7 +118,7 @@ Catch{
 }
 
 Try{
-  if ( ! Test-Path $disk ){
+  if ( ! $(Test-Path $disk) ){
       New-VHD -Path $disk -SizeBytes $disk_size
   }
   Add-VMHardDiskDrive -VMName $Name -Path $disk

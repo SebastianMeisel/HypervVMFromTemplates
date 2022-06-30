@@ -111,7 +111,8 @@ Falls wir eine Checksumme haben, sollten wir das ISO noch verifizieren.
 if ( $ChkSum  )
 {
   Try{
-	(Get-FileHash $image -Algorithm SHA256).Hash -eq "$($ChkSum).ToUpper()" 
+	return $(Get-FileHash $image -Algorithm SHA256).Hash.ToUpper() `
+                             -eq "$($ChkSum).ToUpper()" 
   }
   Catch{
     Write-Warning "Failed to verify $image from $Url."
@@ -169,7 +170,7 @@ Nun erstellen wir die Festplatte und fügen sie zu VM hinzu.
 
 #+BEGIN_SRC PS
 Try{
-  if ( ! Test-Path $disk ){
+  if ( ! $(Test-Path $disk) ){
       New-VHD -Path $disk -SizeBytes $disk_size
   }
   Add-VMHardDiskDrive -VMName $Name -Path $disk
