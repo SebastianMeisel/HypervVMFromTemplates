@@ -36,10 +36,10 @@ Large
 .PARAMETER VMTemplate
    Name of one of the templates in the templates-subdirectory without the
    `_tmp.vhdx` extension.       
-.PARAMETER Playbook
-   Name of one of the playbooks of the templates-subdirectory without the
-  `yaml`extensions.
-.PARAMETER SecondSwitch
+.PARAMETER Playbooks
+   List of playbooks in the templates-subdirectory without the `yaml`-extensions,
+   that you want to apply.
+.PARAMETER SecondNet
   By default the VM is connected to the external virtual switch named "WAN".
   With this switch you can add a second, internal switch named "LAN".
   Both switches must be configured beforehand.
@@ -86,8 +86,8 @@ Param(
     }
     return $Completions
 } )]
-[string]$Playbook,
-[switch]$SecondSwitch,
+[array]$Playbooks,
+[switch]$SecondNet,
 [switch]$Passthru
 )
 
@@ -196,7 +196,7 @@ if ($VM) {
 }
 
 Try{
-  if ($SecondSwitch) {
+  if ($SecondNet) {
     Add-VMNetworkAdapter -SwitchName "LAN" -VMName $Name -Name "Second"
   }
 }
@@ -239,14 +239,14 @@ Try{
       Write-Host -NoNewline "."
       if ($count -ge 100 ) {return}
     }
-    Write-Host ""
-    Write-Verbose "Looking for Adapter connected to Switch 'Internet' "
+    Write-Host "" && Start-Sleep 5
+    Write-Verbose "Looking for Adapter connected to Switch 'WAN' "
     ForEach ($Adapter in $Adapters) {
-      if ($Adapter.SwitchName -eq 'Internet'){
-        Write-Verbose "Found Adapter connected to Switch 'Internet' " 
+      if ($Adapter.SwitchName -eq 'WAN'){
+        Write-Verbose "Found Adapter connected to Switch 'WAN' " 
         $IP=$Adapter.IPAddresses[0] 
         Write-Verbose "Setting hostname to $IP." 
-        wsl sed -i "/template/,+1s/Hostname.*$/Hostname        $IP/" ~/.ssh/config &&
+        wsl sed -i "/template/,+1s/HostName.*$/HostName           $IP/" ~/.ssh/config &&
         wsl cat ~/.ssh/config 
       }
     }
@@ -264,9 +264,9 @@ Catch{
 Try{
    # need to be in ansible subdirectory
    Set-Location $Ansible
-   if ($Playbook){
+   ForEach ($Playbook in $Playbooks){
      Write-Verbose "Playing playbook $Playbook."
-     wsl ansible-playbook -i hosts --vault-id=/etc/ansible/password.txt "$($Playbook)"
+     wsl ansible-playbook -i hosts --vault-id=/etc/ansible/password.txt "$($Playbook).yml"
    }
 }
 Catch{
