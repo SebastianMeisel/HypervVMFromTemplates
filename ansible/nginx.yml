@@ -1,11 +1,48 @@
+- hosts: templates
+  become: yes
+  gather_facts: true
   tasks:
-  - name: Creating netplan config for eth1
-    copy:
-      dest: "/etc/netplan/90-eth1.yaml"
-      content: |
-        ethernets:
-            eth1:
-                addresses:
-                    - {{ eth1_ip }}
-                nameservers:
-                    search: {{ eth1_domains }}
+    - name: Update System 
+      include_tasks: "update-{{ ansible_os_family }}.yml"
+
+    - name: Install Nginx
+      package:
+        name: nginx
+        state: present
+
+    - name: Start Nginx-service
+      service:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Install git
+      package:
+        name: git
+        state: present
+
+    - name: Clone a github repository
+      git:
+        repo: https://github.com/tlaskowsky/one-page-web-html5up
+        dest: /var/www/one-page-web
+        clone: yes
+        update: yes
+
+    - name: copy the nginx config file and restart nginx
+      copy:
+        src: ./one-page-web.cfg
+        dest: /etc/nginx/sites-available/one-page-web.cfg
+      become: yes
+
+    - name: create symlink
+      file:
+        src: /etc/nginx/sites-available/one-page-web.cfg
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      become: yes
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
