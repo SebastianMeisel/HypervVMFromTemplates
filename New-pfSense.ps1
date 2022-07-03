@@ -1,16 +1,3 @@
-#+AUTHOR: Sebastian Meisel
-#+DATE: <2022-06-23 Do>
-#+BABEL: :cache yes
-#+PROPERTY: header-args :tangle New-pfSense.ps1
-
-* VM aus ISO-Abbild erstellen
-Dieses Skript hilft dabei eine VM zuerstellen, das pfSense
-installiert, dieses kann dann als Template verwendet werden. 
-
-* Skript Dokumentation
-Zunächst ist es Best-Practice am Anfang eines
-powershell-Skripts eine kurze Hilfe anzubiete:
-#+BEGIN_SRC PS
 #requires -version 7.0
 
 <#
@@ -41,26 +28,14 @@ Set-VM
 https:\\pfsense.org
 #>
 [cmdletbinding(SupportsShouldProcess)]
-#+END_SRC
 
-
-* Skript-Parameter
-Als  nächstes müssen einige Parameter gesetzt werden:
-
-#+BEGIN_SRC PS
 Param(
 [Parameter(Position=0,Mandatory)]
 [string]$Name,
 [Alias('cn')]
 [System.String[]]$ComputerName=$env:COMPUTERNAME
 )
-#+END_SRC
 
-* Weitere Parameter
-Wir müssen einige Parameter setzen. Du musst eventuell den VM-Switch anpassen.
-Wir setzen auch einige Ressourcen, die du anpassen kannst.
-
-#+BEGIN_SRC PS
 $HV_path = "C:\\Users\User\HyperV"
 $Url = "https://frafiles.netgate.com/mirror/downloads/pfSense-CE-2.6.0-RELEASE-amd64.iso.gz"
 $image = "$($HV_path)\ISO\pfSense.iso"
@@ -69,18 +44,12 @@ $vmswitch2 = "LAN"
 $disk="$($HV_path)/VHD/$($Name).vhdx"
 $disk_size = 10GB 
 $cpu = 1 
-$ram = 2GB 
-#+END_SRC
+$ram = 2GB
 
-* ISO-image downloaden
-Falls eine Url angegeben wurde laden wir das Image aus dem Internet:
-
-#+BEGIN_SRC PS
 if ( ! $(Test-Path $($image))   )
 {
   Try{
-	Invoke-WebRequest -Uri $Url -OutFile $($image).gz && Write-Verbose '.'
-        wsl gunzip $($image).gz
+	Invoke-WebRequest -Uri $Url -OutFile $image && Write-Verbose '.'
   }
   Catch{
     Write-Warning "Failed to Download $image from $Url."
@@ -91,13 +60,7 @@ if ( ! $(Test-Path $($image))   )
     Return
   }
 }
-#+END_SRC
 
-* Neue VM
-Jetzt ist es an der Zeit, die VM zu erstellen. Dabei
-verbinden wir sie auch direkt mit dem Switch.
-
-#+BEGIN_SRC PS
 Try{
   New-VM  $Name -SwitchName $vmswitch1
 }
@@ -109,16 +72,7 @@ Catch{
   $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
   Return
 }
-#+END_SRC
 
-* Ressourcen hinzufügen
-Nun braucht unsere VM Ressourcen.
-
-** CPU und Ram
-Wir weisen die CPU-Kerne und den RAM zu, die wir unter [[* Weitere Parameter][Weitere Parameter]]
-festgelegt haben:
-
-#+BEGIN_SRC PS
 Try{
   Set-VM $Name -ProcessorCount $cpu -MemoryStartupBytes $ram 
 }
@@ -130,15 +84,7 @@ Catch{
   $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
   Return
 }
-#+END_SRC
 
-** Zweite Netzwerkkarte hinzufügen
-
-Wenn der `-SecondSwitch` gewählt wurde wird eine zweite virtuelle
-Netzwerkkarte hinzugefügt und mit dem Internen Switch 'LAN' verbunden.
-! DIESER MUSS VORHER IN HYPERV ANGELEGT WERDEN !
-
-#+BEGIN_SRC PS
 Try{
     Add-VMNetworkAdapter -SwitchName $($vmswitch2) -VMName $Name -Name "Second"
 }
@@ -150,13 +96,7 @@ Catch{
     $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     Return
 }
-#+END_SRC
 
-** Virtuelle Festplatte
-
-Nun erstellen wir die Festplatte und fügen sie zu VM hinzu.
-
-#+BEGIN_SRC PS
 Try{
   if ( ! $(Test-Path $disk) ){
       New-VHD -Path $disk -SizeBytes $disk_size
@@ -171,11 +111,7 @@ Catch{
   $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
   Return
 }
-#+END_SRC
 
-** ISO-image hinzufügen
-Schließlich müssen wir das ISO-Image hinzufügen:
-#+BEGIN_SRC PS
 Try{
   Set-VMDvdDrive -VMName $Name -Path $image
 }
@@ -187,15 +123,7 @@ Catch{
   $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
   Return
 }
-#+END_SRC
 
-
-* VM starten
-
-Jetzt müssen wir die VM nur noch starten und uns mit ihr
-verbinden, um das OS zu installieren. 
-
-#+BEGIN_SRC PS
 Try{
   Start-VM $Name
 }
@@ -222,5 +150,3 @@ Catch{
 Write-Host -NoNewLine "Press any key to continue..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Return
-#+END_SRC
-

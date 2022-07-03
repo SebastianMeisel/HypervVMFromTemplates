@@ -1,5 +1,6 @@
 #+AUTHOR: Sebastian Meisel
 #+DATE: <2022-06-29 Mi>
+#+OPTIONS: :tangle no
 
 * VM aus ISO Erstellen
 
@@ -50,13 +51,33 @@ Templates-Unterverzeichnis kopieren:
 
 Dann kann die Virtuelle Maschine gelöscht werden.
 
-** ClearOs 7
+*** pfSense
 
-#+BEGIN_SRC PS
-  .\New-VMFromISO.ps1 ClearOS_tmp -ISO ClearOS `
-   -Url https://mirror1-frankfurt.clearos.com/clearos/7/iso/x86_64/ClearOS-DVD-x86_64.iso
+pfSense ist eine auf BSD (nicht Linux!) basierendes Router- und Firewall-OS.
+Du kannst [[New-pfSense.org][New-pfSense.ps1]] benutzen, um dass ISO-Image herunterzuladen, zu
+entpacken und die Installation zu starten.
+
+[[./Pictures/pfSense_start_installation.png]]
+
+Folge den Anweisungen. Nach dem Neustart muss zunächst der Packetfilter
+deaktiviert werden, damit eine Konfiguration aus dem WAN (vom Host aus) möglich
+ist. Dazu musst du dich im Hyper-V-manager mit der VM verbinden und im
+angezeigten Menü, "8" wählen, um in den Shell-Modus zu gelangen.
+Nun kann der Packetfilter mit folgendem Befehl deactiviert werden:
+
+#+BEGIN_SRC shell 
+ pfctl -d   
 #+END_SRC
 
+[[./Pictures/pfSense_disable_firewall.png]]
+
+Nun folgst du dem Installationsassistenten. Nach dem erneuten Neustart,
+wiederholst die die Deaktivierung des Packetfilters.
+
+Nun kannst du dich als Benutzer "admin" mit dem Passwort "pfsense" anmelden.
+Erstelle unter dem Menüpunkt Firewall > Rules > WAN folgende Regeln:
+
+[[./Pictures/pfSense_firewall_rules.png]]
 
 * SSH-Schlüssel generieren und auf dem Server authorisieren
 
