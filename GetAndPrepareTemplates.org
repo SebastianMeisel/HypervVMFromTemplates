@@ -53,11 +53,14 @@ Dann kann die Virtuelle Maschine gelöscht werden.
 
 *** pfSense
 
+** Installation
 pfSense ist eine auf BSD (nicht Linux!) basierendes Router- und Firewall-OS.
 Du kannst [[New-pfSense.org][New-pfSense.ps1]] benutzen, um dass ISO-Image herunterzuladen, zu
 entpacken und die Installation zu starten.
 
 [[./Pictures/pfSense_start_installation.png]]
+
+** Firewall Grundkonfiguration
 
 Folge den Anweisungen. Nach dem Neustart muss zunächst der Packetfilter
 deaktiviert werden, damit eine Konfiguration aus dem WAN (vom Host aus) möglich
@@ -78,6 +81,54 @@ Nun kannst du dich als Benutzer "admin" mit dem Passwort "pfsense" anmelden.
 Erstelle unter dem Menüpunkt Firewall > Rules > WAN folgende Regeln:
 
 [[./Pictures/pfSense_firewall_rules.png]]
+
+** Benutzer anlegen
+
+Nun müssen wir unter `System -> User Manager -> User ->
+Edit` einen unpriviligierten Benutzer mit dem Standard
+Benutzernamen und Passwort anlegen, den wir für die
+Konfiguration mit Ansible nutzen wollen: 
+
+[[./Pictures/pfSense_create_user.png]]
+
+** Sudo installieren
+
+Nun muss noch sudo installiert und konfiguriert werden.
+Dazu gehen wir wie beim [[* Firewall Grundkonfiguration][deaktivieren der Firewall]] wieder auf
+die Komandozeile der VM und geben folgenden Befehle ein:
+
+#+BEGIN_SRC shell
+pkg update
+pkg upgrade
+pkg install sudo
+su -
+#+END_SRC
+
+Der letzte Befehl führt zurück ins "Hauptmenü", von woaus
+wir mit `8` zurück auf die Komandozeile kommen. Nun können
+wir den unpriviligierten Nutzer in die sudoers-Datei
+eintragen:
+
+#+BEGIN_SRC shell
+visudo
+#+END_SRC
+
+Wir nutzen hier tatsächlich `vi`. D. h. wir müssen zunächst
+mit "i" in den Eingabemodus wechseln. Nun trägst du folgende
+Zeile ein, wobei du den Benutzernamen anpasst:
+
+#+BEGIN_SRC sudoers-Datei
+user = ALL (ALL) ALL  
+#+END_SRC
+
+Mit "Z-Z" speicherst du und beendest vi.
+
+!! Wahrscheinlich ist das Qwerty-Tastaturlayout
+aktiviert. Also sind "Z" und "Y" gegenüber dem deutschen
+Qwertz-Layout vertauscht !!
+
+Nun solltest du testen, ob du dich via Ssh anmelden kannst.
+
 
 * SSH-Schlüssel generieren und auf dem Server authorisieren
 
