@@ -84,8 +84,8 @@ Erstelle unter dem Menüpunkt Firewall > Rules > WAN folgende Regeln:
 
 ** Benutzer anlegen
 
-Nun müssen wir unter `System -> User Manager -> User ->
-Edit` einen unpriviligierten Benutzer mit dem Standard
+Nun müssen wir unter [System -> User Manager -> User ->
+Edit] einen unpriviligierten Benutzer mit dem Standard
 Benutzernamen und Passwort anlegen, den wir für die
 Konfiguration mit Ansible nutzen wollen: 
 
@@ -105,7 +105,7 @@ su -
 #+END_SRC
 
 Der letzte Befehl führt zurück ins "Hauptmenü", von woaus
-wir mit `8` zurück auf die Komandozeile kommen. Nun können
+wir mit '8' zurück auf die Komandozeile kommen. Nun können
 wir den unpriviligierten Nutzer in die sudoers-Datei
 eintragen:
 
@@ -113,7 +113,7 @@ eintragen:
 visudo
 #+END_SRC
 
-Wir nutzen hier tatsächlich `vi`. D. h. wir müssen zunächst
+Wir nutzen hier tatsächlich 'vi'. D. h. wir müssen zunächst
 mit "i" in den Eingabemodus wechseln. Nun trägst du folgende
 Zeile ein, wobei du den Benutzernamen anpasst:
 
