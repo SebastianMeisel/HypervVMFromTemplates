@@ -127,10 +127,15 @@ Mit "Z-Z" speicherst du und beendest vi.
 aktiviert. Also sind "Z" und "Y" gegenüber dem deutschen
 Qwertz-Layout vertauscht !!
 
-Nun solltest du testen, ob du dich via Ssh anmelden kannst.
+** SSH aktivieren
+Abschließend müssen wir unter [System -> Advance -> Admin
+Access]  Ssh aktivieren:
+
+[[./Pictures/pfSense_ssh_key.png]]
 
 
-* SSH-Schlüssel generieren und auf dem Server authorisieren
+* SSH einrichten
+** SSH-Schlüssel generieren und auf dem Server authorisieren
 
 Nun müssen wir einen SSH-Schlüssel (siehe: [[https://man.archlinux.org/man/ssh-keygen.1.de][man ssh-keygen]]) erstellen, um uns
 ohne Passwort auf den VMs anzumelden:  
@@ -146,7 +151,7 @@ Dann laden wir ihn (siehe: [[https://man.archlinux.org/man/ssh-copy-id.1.de][man
 wsl ssh-copy-id -i ~/.ssh/HyperV-VM nutzer@192.168.13.56
 #+END_SRC
 
-* SSH-config Eintrag
+** SSH-config Eintrag
 
 Nun erstellen wir einen Eintrag in die [[https://man.archlinux.org/man/ssh_config.5.de][~/.ssh/config]]:
 
@@ -159,4 +164,5 @@ Nun erstellen wir einen Eintrag in die [[https://man.archlinux.org/man/ssh_confi
 >> .
 >> '  
 #+END_SRC
+
 
