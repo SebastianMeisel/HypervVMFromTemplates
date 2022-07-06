@@ -8,8 +8,8 @@ Zunächst nutzen wir [[file+emacs:New-VMFromIso.org][New-VMFromIso.ps1]] um ein 
 gewünschten OS herunterzuladen und zu starten. Für das
 spätere Beispiel brauchen wir Templates für:
 
-- Ubuntu-Server 22.04
-- ClearOs 7
+- [[* Ubuntu-Server 22.04][Ubuntu-Server 22.04]]
+- [[* pfSense][pfSense]]
   
 ** Ubuntu-Server 22.04
 
@@ -42,25 +42,17 @@ installiert. Das solltest du aber nur tun, wenn du einen Desktop nutzen
 möchtest, da als Abhängigkeit alle möglichen X11-Packete installiert werden, die
 du auf einem Server vermutlich nicht möchstest.
 
-Nun kannst du den Server herunterfahren und die virtuelle Festplatte nach ins
-Templates-Unterverzeichnis kopieren:
 
-#+BEGIN_SRC PS
-   Move-Item .\VHD\Ubuntu_tmp.vhdx .\Templates\
-#+END_SRC
+** pfSense
 
-Dann kann die Virtuelle Maschine gelöscht werden.
-
-*** pfSense
-
-** Installation
+*** Installation
 pfSense ist eine auf BSD (nicht Linux!) basierendes Router- und Firewall-OS.
 Du kannst [[New-pfSense.org][New-pfSense.ps1]] benutzen, um dass ISO-Image herunterzuladen, zu
 entpacken und die Installation zu starten.
 
 [[./Pictures/pfSense_start_installation.png]]
 
-** Firewall Grundkonfiguration
+*** Firewall Grundkonfiguration
 
 Folge den Anweisungen. Nach dem Neustart muss zunächst der Packetfilter
 deaktiviert werden, damit eine Konfiguration aus dem WAN (vom Host aus) möglich
@@ -82,7 +74,7 @@ Erstelle unter dem Menüpunkt Firewall > Rules > WAN folgende Regeln:
 
 [[./Pictures/pfSense_firewall_rules.png]]
 
-** Benutzer anlegen
+*** Benutzer anlegen
 
 Nun müssen wir unter [System -> User Manager -> User ->
 Edit] einen unpriviligierten Benutzer mit dem Standard
@@ -91,7 +83,7 @@ Konfiguration mit Ansible nutzen wollen:
 
 [[./Pictures/pfSense_create_user.png]]
 
-** Sudo installieren
+*** Sudo installieren
 
 Nun muss noch sudo installiert und konfiguriert werden.
 Dazu gehen wir wie beim [[* Firewall Grundkonfiguration][deaktivieren der Firewall]] wieder auf
@@ -127,7 +119,7 @@ Mit "Z-Z" speicherst du und beendest vi.
 aktiviert. Also sind "Z" und "Y" gegenüber dem deutschen
 Qwertz-Layout vertauscht !!
 
-** SSH aktivieren
+*** SSH aktivieren
 Abschließend müssen wir unter [System -> Advance -> Admin
 Access]  Ssh aktivieren:
 
@@ -165,4 +157,13 @@ Nun erstellen wir einen Eintrag in die [[https://man.archlinux.org/man/ssh_confi
 >> '  
 #+END_SRC
 
+* Image als Template speichern 
+Nun kannst du den Server herunterfahren und die virtuelle Festplatte nach ins
+Templates-Unterverzeichnis kopieren:
+
+#+BEGIN_SRC PS
+   Move-Item .\VHD\*_tmp.vhdx .\Templates\
+#+END_SRC
+
+Dann kann die Virtuelle Maschine gelöscht werden.
 
