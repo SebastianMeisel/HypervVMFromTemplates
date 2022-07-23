@@ -43,6 +43,8 @@ Large
   By default the VM is connected to the external virtual switch named "WAN".
   With this switch you can add a second, internal switch named "LAN".
   Both switches must be configured beforehand.
+.PARAMETER Reboot
+  Set this switch, when the VM shall reboot at the end of the installation process.
 .PARAMETER Passthru
   With this switch set, the process is send to the background. You can do diffent
   things in the Powershell.
@@ -88,6 +90,7 @@ Param(
 } )]
 [array]$Playbooks,
 [switch]$SecondNet,
+[switch]$Reboot,
 [switch]$Passthru
 )
 
@@ -247,7 +250,9 @@ Try{
         $IP=$Adapter.IPAddresses[0] 
         Write-Verbose "Setting hostname to $IP." 
         wsl sed -i "/template/,+1s/HostName.*$/HostName           $IP/" ~/.ssh/config &&
-        wsl cat ~/.ssh/config 
+        wsl cat ~/.ssh/config
+        Write-Verbose "Write hostkey for $IP to ~/.ssh/known-hosts"
+        wsl bash ./allowHost.sh $IP
       }
     }
 }  
@@ -292,19 +297,20 @@ Catch{
     Return
 }
 
-Try{
-   Restart-VM $Name
+if ($Reboot) {
+  Try{
+     Restart-VM $Name -Force
+  }
+  Catch{
+      Write-Warning "Failed to restart virtual machines hostname to $Name."
+      Write-Warning $_.Exception.Message
+      #bail out
+      Write-Host -NoNewLine "Press any key to continue..."
+      $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+      Set-Location "$($Pre)"
+      Return
+  }
 }
-Catch{
-    Write-Warning "Failed to restart virtual machines hostname to $Name."
-    Write-Warning $_.Exception.Message
-    #bail out
-    Write-Host -NoNewLine "Press any key to continue..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    Set-Location "$($Pre)"
-    Return
-}
-
 Set-Location "$($Pre)"
 Write-Host -NoNewLine "Press any key to continue..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

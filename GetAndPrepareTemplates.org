@@ -57,7 +57,7 @@ entpacken und die Installation zu starten.
 Folge den Anweisungen. Nach dem Neustart muss zunächst der Packetfilter
 deaktiviert werden, damit eine Konfiguration aus dem WAN (vom Host aus) möglich
 ist. Dazu musst du dich im Hyper-V-manager mit der VM verbinden und im
-angezeigten Menü, "8" wählen, um in den Shell-Modus zu gelangen.
+angezeigten Menü, [8] wählen, um in den Shell-Modus zu gelangen.
 Nun kann der Packetfilter mit folgendem Befehl deactiviert werden:
 
 #+BEGIN_SRC shell 
@@ -97,7 +97,7 @@ su -
 #+END_SRC
 
 Der letzte Befehl führt zurück ins "Hauptmenü", von woaus
-wir mit '8' zurück auf die Komandozeile kommen. Nun können
+wir mit [8] zurück auf die Komandozeile kommen. Nun können
 wir den unpriviligierten Nutzer in die sudoers-Datei
 eintragen:
 
@@ -106,17 +106,18 @@ visudo
 #+END_SRC
 
 Wir nutzen hier tatsächlich 'vi'. D. h. wir müssen zunächst
-mit "i" in den Eingabemodus wechseln. Nun trägst du folgende
+mit [i] in den Eingabemodus wechseln. Nun trägst du folgende
 Zeile ein, wobei du den Benutzernamen anpasst:
 
 #+BEGIN_SRC sudoers-Datei
 user = ALL (ALL) ALL  
 #+END_SRC
 
-Mit "Z-Z" speicherst du und beendest vi.
+Drücke [ESC], um in den Komandomode zu wechseln.
+Mit [Z][Z] speicherst du und beendest vi.
 
 !! Wahrscheinlich ist das Qwerty-Tastaturlayout
-aktiviert. Also sind "Z" und "Y" gegenüber dem deutschen
+aktiviert. Also sind [Z] und [Y] gegenüber dem deutschen
 Qwertz-Layout vertauscht !!
 
 *** SSH aktivieren
@@ -148,13 +149,13 @@ wsl ssh-copy-id -i ~/.ssh/HyperV-VM nutzer@192.168.13.56
 Nun erstellen wir einen Eintrag in die [[https://man.archlinux.org/man/ssh_config.5.de][~/.ssh/config]]:
 
 #+BEGIN_SRC PS
- wsl eval 'cat << \. >> ~/.ssh/config
->> Host template VM
->>      HostName           template
->>      User               Nutzer
->>      IdentityFile       ~/.ssh/HyperV-VM
->> .
->> '  
+wsl eval 'cat << \. >> ~/.ssh/config
+Host template VM
+     HostName           template
+     User               Nutzer
+     IdentityFile       ~/.ssh/HyperV-VM
+.
+'  
 #+END_SRC
 
 * Image als Template speichern 
