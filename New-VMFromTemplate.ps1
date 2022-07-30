@@ -39,10 +39,14 @@ Large
 .PARAMETER Playbooks
    List of playbooks in the templates-subdirectory without the `yaml`-extensions,
    that you want to apply.
-.PARAMETER SecondNet
+.PARAMETER LAN
   By default the VM is connected to the external virtual switch named "WAN".
-  With this switch you can add a second, internal switch named "LAN".
-  Both switches must be configured beforehand.
+  With this switch you can add an additional, internal switch named "LAN".
+  All virtual switches must be configured beforehand.
+.PARAMETER PRIV
+  By default the VM is connected to the external virtual switch named "WAN".
+  With this switch you can add an additional, private switch named "LAN".
+  All virtual switches must be configured beforehand.
 .PARAMETER Reboot
   Set this switch, when the VM shall reboot at the end of the installation process.
 .PARAMETER Passthru
@@ -89,7 +93,8 @@ Param(
     return $Completions
 } )]
 [array]$Playbooks,
-[switch]$SecondNet,
+[switch]$LAN,
+[switch]$PRIV,
 [switch]$Reboot,
 [switch]$Passthru
 )
@@ -199,12 +204,26 @@ if ($VM) {
 }
 
 Try{
-  if ($SecondNet) {
-    Add-VMNetworkAdapter -SwitchName "LAN" -VMName $Name -Name "Second"
+  if ($LAN) {
+    Add-VMNetworkAdapter -SwitchName "LAN" -VMName $Name -Name "LAN"
   }
 }
 Catch{
-    Write-Warning "Failed to add second Switch 'VM'."
+    Write-Warning "Failed to add internal Switch."
+    Write-Warning $_.Exception.Message
+    #bail out
+    Write-Host -NoNewLine "Press any key to continue..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    Return
+}
+
+Try{
+  if ($PRIV) {
+    Add-VMNetworkAdapter -SwitchName "PRIV" -VMName $Name -Name "PRIV"
+  }
+}
+Catch{
+    Write-Warning "Failed to add private Switch."
     Write-Warning $_.Exception.Message
     #bail out
     Write-Host -NoNewLine "Press any key to continue..."
